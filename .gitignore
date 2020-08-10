@@ -1,0 +1,14 @@
+.idea/
+__pycache__
+log/
+pretrained_models
+_ref_codes/
+*.jpg
+*.png
+memo.txt
+figures/
+output/
+*.pth
+*.tar
+*.log
+output_images/

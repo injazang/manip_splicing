@@ -1,0 +1,60 @@
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
+ENV TZ Asia/Seoul
+ARG  DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -qq && apt-get install -y -q \
+        build-essential \
+        pkg-config \
+        software-properties-common \
+        curl \
+        git \
+        unzip \
+        zlib1g-dev \
+        locales \
+    && apt-get clean -qq && rm -rf /var/lib/apt/lists/*
+RUN apt-get update 
+RUN apt-get install -y libsm6 libxext6 libxrender-dev git-all
+
+
+RUN locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US.en LC_ALL=en_US.UTF-8
+
+#ENV PYTHONPATH="${PYTHONPATH}:/src:/mnt/project"
+ENV PATH=/opt/conda/bin:$PATH
+ENV PYTHONVERSION=3.6.9
+
+# conda needs an untainted base environment to function properly
+# that's why a new separate conda environment is created
+RUN curl "https://repo.anaconda.com/miniconda/Miniconda3-4.7.12.1-Linux-x86_64.sh" --output ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
+    rm -rf ~/.cache ~/miniconda.sh
+
+# split the conda installations because the dev boxes have limited memory
+RUN /opt/conda/bin/conda create -n env -c conda-forge python=$PYTHONVERSION pip && \
+    /opt/conda/bin/conda clean -a && \
+    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+    echo ". /opt/conda/etc/profile.d/conda.sh" > ~/.env && \
+    echo "conda activate env" >> ~/.env && \
+    echo "source ~/.env" >> ~/.bashrc
+
+ENV BASH_ENV=~/.env
+SHELL ["/bin/bash", "-c"]
+
+ENV CUDA cu100
+
+#RUN pip install torch torchvision
+RUN conda install pytorch==1.2.0 torchvision==0.4.0 cudatoolkit=10.0 -c pytorch
+
+
+
+# Apex layer (apex allows for 16-bit training => x3-4 speedup)
+RUN git clone https://github.com/NVIDIA/apex \
+ && cd apex \
+ && pip install -v --no-cache-dir . 
+
+RUN pip install cython
+RUN git clone https://github.com/dwgoon/jpegio.git \
+ && cd jpegio \
+ && python setup.py install 
+
+RUN pip install opencv-python glob3 scikit-learn Pillow pandas tensorflow==1.13.1 torch_dct fire
+CMD ["/bin/bash"]

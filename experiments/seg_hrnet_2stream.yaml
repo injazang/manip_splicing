@@ -1,0 +1,130 @@
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: false
+  ENABLED: true
+GPUS: (0,1)
+OUTPUT_DIR: 'output'
+LOG_DIR: 'log'
+WORKERS: 10
+PRINT_FREQ: 10
+DATA_DIR: ''
+
+DATASET:
+  DATASET: 'djpeg'
+  DATA_FORMAT: 'jpg'
+  ROOT: 'data/imagenet/'
+  TEST_SET: 'val'
+  TRAIN_SET: 'train'
+
+MODEL:
+  NAME: cls_hrnet
+  IMAGE_SIZE:
+    - 256
+    - 256
+  EXTRA:
+    FINAL_CONV_KERNEL: 1
+    STAGE1:
+      NUM_MODULES: 1
+      NUM_RANCHES: 1
+      BLOCK: BOTTLENECK
+      NUM_BLOCKS:
+      - 4
+      NUM_CHANNELS:
+      - 64
+      FUSE_METHOD: SUM
+    STAGE2:
+      NUM_MODULES: 1
+      NUM_BRANCHES: 2
+      BLOCK: BASIC
+      NUM_BLOCKS:
+      - 4
+      - 4
+      NUM_CHANNELS:
+      - 48
+      - 96
+      FUSE_METHOD: SUM
+    STAGE3:
+      NUM_MODULES: 4
+      NUM_BRANCHES: 3
+      BLOCK: BASIC
+      NUM_BLOCKS:
+      - 4
+      - 4
+      - 4
+      NUM_CHANNELS:
+      - 48
+      - 96
+      - 192
+      FUSE_METHOD: SUM
+    STAGE4:
+      NUM_MODULES: 3
+      NUM_BRANCHES: 4
+      BLOCK: BASIC
+      NUM_BLOCKS:
+      - 4
+      - 4
+      - 4
+      - 4
+      NUM_CHANNELS:
+      - 48
+      - 96
+      - 192
+      - 384
+      FUSE_METHOD: SUM
+    DC_STAGE3:
+      NUM_MODULES: 4  # 4
+      NUM_BRANCHES: 2
+      BLOCK: BASIC
+      NUM_BLOCKS:
+        - 4
+        - 4
+      NUM_CHANNELS:
+        - 96
+        - 192
+      FUSE_METHOD: SUM
+    DC_STAGE4:
+      NUM_MODULES: 3  # 3
+      NUM_BRANCHES: 3
+      BLOCK: BASIC
+      NUM_BLOCKS:
+        - 4
+        - 4
+        - 4
+      NUM_CHANNELS:
+        - 96
+        - 192
+        - 384
+      FUSE_METHOD: SUM
+    STAGE5:
+      NUM_MODULES: 2
+      NUM_BRANCHES: 2
+      BLOCK: BASIC
+      NUM_BLOCKS:
+        - 4
+        - 4
+      NUM_CHANNELS:
+        - 48
+        - 96
+      FUSE_METHOD: SUM
+
+TEST:
+  BATCH_SIZE_PER_GPU: 36
+  MODEL_FILE: ''
+TRAIN:
+  BATCH_SIZE_PER_GPU: 36
+  BEGIN_EPOCH: 0
+  END_EPOCH: 100
+  RESUME: true
+  LR_FACTOR: 0.1
+  LR_STEP:
+  - 2
+  - 4
+  - 6
+  OPTIMIZER: sgd
+  LR: 0.05
+  WD: 0.0001
+  MOMENTUM: 0.9
+  NESTEROV: true
+  SHUFFLE: true
+DEBUG:
+  DEBUG: false
